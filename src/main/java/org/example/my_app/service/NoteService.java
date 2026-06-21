@@ -1,8 +1,11 @@
 package org.example.my_app.service;
 
 import lombok.AllArgsConstructor;
-import org.aspectj.weaver.ast.Not;
+import org.example.my_app.dto.NoteRequest;
+import org.example.my_app.dto.NoteResponse;
 import org.example.my_app.entity.Note;
+import org.example.my_app.exception.NoteNotFoundException;
+import org.example.my_app.mapper.NoteMapper;
 import org.example.my_app.repo.NotesRepo;
 import org.springframework.stereotype.Service;
 
@@ -13,29 +16,34 @@ import java.util.List;
 @AllArgsConstructor
 public class NoteService {
     private final NotesRepo notesRepo;
+    private final NoteMapper noteMapper;
 
-    public List<Note> getAllNotes(){
-        return notesRepo.findAll();
+    public List<NoteResponse> getAllNotes(){
+        return notesRepo.findAll()
+                .stream()
+                .map(noteMapper::toResponse)
+                .toList();
     }
 
-    public Note createNote(Note note){
+    public NoteResponse createNote(NoteRequest request){
+        Note note = noteMapper.toEntity(request);
         note.setCreatedAt(LocalDateTime.now());
         note.setUpdatedAt(LocalDateTime.now());
-        return notesRepo.save(note);
+        return noteMapper.toResponse(notesRepo.save(note));
     }
 
-    public Note updateNote(Long id,Note updatedNote){
+    public NoteResponse updateNote(Long id,NoteRequest request){
         Note note = notesRepo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Not found"));
-        note.setTitle(updatedNote.getTitle());
-        note.setDescription(updatedNote.getDescription());
+                .orElseThrow(() -> new NoteNotFoundException("Note not found with id " + id));
+        note.setTitle(request.getTitle());
+        note.setDescription(request.getDescription());
         note.setUpdatedAt(LocalDateTime.now());
-        return notesRepo.save(note);
+        return noteMapper.toResponse(notesRepo.save(note));
     }
 
     public void deleteNote(Long id){
         if (!notesRepo.existsById(id)){
-            throw new RuntimeException("Not found");
+            throw new NoteNotFoundException("Note not found with id " + id);
         }
         notesRepo.deleteById(id);
     }

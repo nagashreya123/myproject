@@ -1,8 +1,9 @@
 package org.example.my_app.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.my_app.entity.Note;
-import org.example.my_app.repo.NotesRepo;
+import org.example.my_app.dto.NoteRequest;
+import org.example.my_app.dto.NoteResponse;
 import org.example.my_app.service.NoteService;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,18 +15,18 @@ public class NotesController {
 
     private final NoteService noteService;
     @GetMapping("/notes")
-    public List<Note> getAllNotes(){
+    public List<NoteResponse> getAllNotes(){
         return noteService.getAllNotes();
     }
 
     @PostMapping("/notes")
-    public Note createNote(@RequestBody Note note){
-        return noteService.createNote(note);
+    public NoteResponse createNote(@Valid @RequestBody NoteRequest request){
+        return noteService.createNote(request);
     }
 
     @PutMapping("/notes/{id}")
-    public Note updateNote(@PathVariable Long id, @RequestBody Note note){
-        return noteService.updateNote(id,note);
+    public NoteResponse updateNote(@PathVariable Long id, @RequestBody NoteRequest request){
+        return noteService.updateNote(id,request);
     }
 
     @DeleteMapping("/notes/{id}")
